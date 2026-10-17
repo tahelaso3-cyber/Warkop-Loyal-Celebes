@@ -3,44 +3,43 @@ name: Build Warkop Loyal Celebes APK
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'Warkop_Loyal_Celebes_Android_Project_v2.zip'
-      - '.github/workflows/android-apk.yml'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ambil berkas proyek
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Siapkan Java
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      -       - name: Siapkan Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Pasang Android SDK Platform
-        run: |
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-          gradle-version: '8.9'
+      - name: Install Android SDK packages
+        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Ekstrak proyek
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
+
+      - name: Extract project
         run: |
           unzip Warkop_Loyal_Celebes_Android_Project_v2.zip -d project
-          test -f project/warkop_loyal_celebes/app/build.gradle
+          find project -name settings.gradle -o -name settings.gradle.kts
 
-      - name: Bangun APK
-        working-directory: project/warkop_loyal_celebes
-        run: gradle assembleDebug
+      - name: Build APK
+        run: |
+          PROJECT_DIR="$(dirname "$(find project -name settings.gradle -o -name settings.gradle.kts | head -n 1)")"
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
 
-      - name: Simpan APK untuk diunduh
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Warkop-Loyal-Celebes-APK
-          path: project/warkop_loyal_celebes/app/build/outputs/apk/debug/app-debug.apk
+          path: project/**/app/build/outputs/apk/debug/app-debug.apk

@@ -12,20 +12,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - name: Build Warkop Loyal Celebes APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-
-      - name: Install unzip
-        run: sudo apt-get update && sudo apt-get install -y unzip
+      - name: Install Android SDK
+        run: |
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-35"
+          sdkmanager "build-tools;35.0.0"
 
       - name: Extract project
         run: |
@@ -34,12 +43,11 @@ jobs:
 
       - name: Build APK
         run: |
-          PROJECT_DIR="$(dirname "$(find project -name settings.gradle -o -name settings.gradle.kts | head -n 1)")"
-          cd "$PROJECT_DIR"
+          cd project/warkop_loyal_celebes
           gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Warkop-Loyal-Celebes-APK
-          path: project/**/app/build/outputs/apk/debug/app-debug.apk
+          path: project/warkop_loyal_celebes/app/build/outputs/apk/debug/app-debug.apk
